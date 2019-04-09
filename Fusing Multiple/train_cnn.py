@@ -17,10 +17,10 @@ def adjust_learning_rate(optimizer, decay_rate):
 
 begin_time = time.time()
 
-[train_loader, train_dataset] = loadtraindata()
-[test_loader, test_dataset] = loadtestdata()
+[train_loader, train_dataset] = loadtraindata(patch=True)
+[test_loader, test_dataset] = loadtestdata(patch=True)
 
-model = RGB_model()
+model = patch_model()
 use_gpu = torch.cuda.is_available()
 if use_gpu:
     model = model.cuda()
@@ -36,64 +36,66 @@ optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum)
 train_acc = [0 for i in range(num_epoches)]
 test_acc = [0 for i in range(num_epoches)]
 
-for epoch in range(num_epoches):
-    print('epoch {}'.format(epoch+1))
-    print('*'*10)
-    running_loss = 0.0
-    running_acc = 0.0
-    for i, data in enumerate(train_loader, 1):
-        img, label = data
-        if use_gpu:
-            img = Variable(img).cuda()
-            label = Variable(label).cuda()
-        else:
-            img = Variable(img)
-            label = Variable(label)
+for num_patch in range(10):
+    for epoch in range(num_epoches):
+        print('epoch {}'.format(epoch+1))
+        print('*'*10)
+        running_loss = 0.0
+        running_acc = 0.0
+        for i, data in enumerate(train_loader, 1):
+            img, label = data
+            if use_gpu:
+                img = Variable(img).cuda()
+                label = Variable(label).cuda()
+            else:
+                img = Variable(img)
+                label = Variable(label)
 
-        out = model(img)
-        loss = criterion(out, label)
-        running_loss += loss.item() * label.size(0)
-        _, pred = torch.max(out, 1)
-        num_correct = (pred == label).sum()
-        running_acc += num_correct.item()
+            out = model(img)
+            loss = criterion(out, label)
+            running_loss += loss.item() * label.size(0)
+            _, pred = torch.max(out, 1)
+            num_correct = (pred == label).sum()
+            running_acc += num_correct.item()
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-        if i % 10 == 0:
-            print('[{}/{}] Loss: {:.6f}, Acc: {:.6f}'.format(
-            epoch + 1, num_epoches, running_loss / (batch_size * i),
-            running_acc / (batch_size * i)))
-            percent = (i*100/(len(train_loader)))
-            current_time = time.time()
-            print('{:.2f}%     {:.2f}s'.format(percent, current_time-begin_time))
+            if i % 10 == 0:
+                print('[{}/{}] Loss: {:.6f}, Acc: {:.6f}'.format(
+                epoch + 1, num_epoches, running_loss / (batch_size * i),
+                running_acc / (batch_size * i)))
+                percent = (i*100/(len(train_loader)))
+                current_time = time.time()
+                print('{:.2f}%     {:.2f}s'.format(percent, current_time-begin_time))
 
-    print('Finish {} epoch, Loss: {:.6f}, Acc: {:.6f}'.format(
-            epoch + 1, running_loss / (len(train_dataset)), running_acc / (len(
-            train_dataset))))
-    train_acc[epoch] = running_acc / (len(train_dataset))
-    model.eval()
-    eval_loss = 0.
-    eval_acc = 0.
-    for data in test_loader:
-        img, label = data
-        if use_gpu:
-            img = Variable(img).cuda()
-            label = Variable(label).cuda()
-        else:
-            img = Variable(img)
-            label = Variable(label)
-        out = model(img)
-        loss = criterion(out, label)
-        eval_loss += loss.item() * label.size(0)
-        _, pred = torch.max(out, 1)
-        num_correct = (pred == label).sum()
-        eval_acc += num_correct.item()
-    print('Test Loss: {:.6f}, Acc: {:.6f}'.format(eval_loss / (len(
-        test_dataset)), eval_acc / (len(test_dataset))))
-    test_acc[epoch] = eval_acc / (len(test_dataset))
-    adjust_learning_rate(optimizer, decay_rate)
+        print('Finish {} epoch, Loss: {:.6f}, Acc: {:.6f}'.format(
+                epoch + 1, running_loss / (len(train_dataset)), running_acc / (len(
+                train_dataset))))
+        train_acc[epoch] = running_acc / (len(train_dataset))
+        model.eval()
+        eval_loss = 0.
+        eval_acc = 0.
+        for data in test_loader:
+            img, label = data
+            if use_gpu:
+                img = Variable(img).cuda()
+                label = Variable(label).cuda()
+            else:
+                img = Variable(img)
+                label = Variable(label)
+            out = model(img)
+            loss = criterion(out, label)
+            eval_loss += loss.item() * label.size(0)
+            _, pred = torch.max(out, 1)
+            num_correct = (pred == label).sum()
+            eval_acc += num_correct.item()
+        print('Test Loss: {:.6f}, Acc: {:.6f}'.format(eval_loss / (len(
+            test_dataset)), eval_acc / (len(test_dataset))))
+        test_acc[epoch] = eval_acc / (len(test_dataset))
+        adjust_learning_rate(optimizer, decay_rate)
 
-acc_plot(train_acc, test_acc)
-torch.save(model.state_dict(), 'rgb_net.pkl')
+    acc_plot(train_acc, test_acc)
+    torch.save(model.state_dict(), 'nuaa_model/patch' + str(num_patch) + '.pkl')
+    print('model' + str(num_patch) + 'saved')

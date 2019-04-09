@@ -5,7 +5,7 @@ from torchvision import datasets
 from config import *
 
 def loadtraindata(patch = False, batch = batch_size):
-    # path = r"E:\database\CBSR-Antispoofing\processed\train"
+    # path = r"E:\database\CBSR-Antispoofing\fusing\train"
     path = r"E:\database\nuaa\data\train"
     train_dataset = datasets.ImageFolder(path,
                             transform=transforms.Compose([
@@ -23,7 +23,7 @@ def loadtraindata(patch = False, batch = batch_size):
     return train_loader, train_dataset
 
 def loadtestdata(patch = False, batch = batch_size):
-    # path = r"E:\database\CBSR-Antispoofing\processed\test"
+    # path = r"E:\database\CBSR-Antispoofing\fusing\test"
     path = r"E:\database\nuaa\data\test"
     test_dataset = datasets.ImageFolder(path,
                             transform=transforms.Compose([

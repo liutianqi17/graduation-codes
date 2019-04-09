@@ -1,0 +1,11 @@
+train nuaa   test casia
+1  330/692
+0  1541/2114
+
+train casia  test casia
+1  363/363
+0  953/1050
+
+train casia  test nuaa
+1  1717/1911
+0  1019/1974
